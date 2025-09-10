@@ -145,6 +145,11 @@ jobs:
             
             # Navigate to project directory
             cd ~/projects/test/teststarter1
+          
+            # Pull latest changes (safe even if already on preprod branch)
+            git fetch origin
+            git checkout preprod || git checkout -b preprod origin/preprod
+            git pull origin preprod
 
             # Login GHCR (token GitHub avec scope packages:read côté serveur)
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
