@@ -71,6 +71,9 @@ jobs:
             target: preprod
           # ajouter ici les différents services si besoin
     steps:
+      - name: Compute tag timestamp (UTC)
+        run: echo "TAG_TS=$(date -u +%Y.%m.%d-%H%M)" >> $GITHUB_ENV
+
       - name: Checkout & setup
         uses: actions/checkout@v4
 
@@ -100,6 +103,7 @@ jobs:
           tags: |
             ${{ env.IMAGE_BASE }}/${{ matrix.service.name }}:${{ env.TAG_BASE }}
             ${{ env.IMAGE_BASE }}/${{ matrix.service.name }}:${{ env.TAG_BASE }}-${{ github.sha }}
+            ${{ env.IMAGE_BASE }}/${{ matrix.service.name }}:preprod-${{ env.TAG_TS }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
