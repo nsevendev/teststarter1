@@ -57,10 +57,10 @@ shapp: ## Ouvre un shell dans le conteneur de l'application frontend
 	$(DOCKER_COMPOSE) exec app bash
 
 taf: ## Lance tous les tests de l'app
-	docker exec -it teststarter1_dev_app npm run test
+	$(DOCKER_COMPOSE) exec app npm run test
 
 taff: ## Lance le test du fichier donné de l'app (usage: make taff file=pathdufichier)
 	docker exec -it teststarter1_dev_app npm run test -- --include $(file)
 
 tafc: ## Lance tous les tests de l'app en mode CI (headless)
-	docker exec teststarter1_dev_app npm run test:ci
+	$(DOCKER_COMPOSE) exec app npm run test:ci

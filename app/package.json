@@ -9,7 +9,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test --browsers=ChromeHeadlessNoSandbox --watch --poll=2000",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadlessNoSandbox",
-    "serve:ssr:app": "node dist/app/server/server.mjs",
+    "serve:ssr:app": "node dist/app/server/server.mjs"
   },
   "prettier": {
     "printWidth": 100,
