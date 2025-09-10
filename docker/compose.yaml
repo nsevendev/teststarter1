@@ -1,0 +1,33 @@
+name: teststarter1-${APP_ENV}
+services:
+  app:
+     build:
+       target: ${APP_ENV}
+       context: ../app
+       dockerfile: ../docker/Dockerfile
+       args:
+         - NODE_VERSION=${NODE_VERSION}
+     container_name: teststarter1_${APP_ENV}_app
+     image: teststarter1-app:${APP_ENV}
+     labels:
+       - "traefik.enable=true"
+       - "traefik.docker.network=traefik-nseven"
+       - "traefik.http.routers.teststarter1-app.rule=${HOST_TRAEFIK_APP}"
+       - "traefik.http.routers.teststarter1-app.entrypoints=websecure"
+       - "traefik.http.routers.teststarter1-app.tls=true"
+       - "traefik.http.routers.teststarter1-app.tls.certresolver=default"
+       - "traefik.http.services.teststarter1-app.loadbalancer.server.port=${PORT}"
+       - "traefik.http.services.teststarter1-app.loadbalancer.server.scheme=http"
+     volumes:
+       - ../app:/app
+     env_file:
+       - ../app/.env
+     networks:
+       - traefik-nseven
+       - teststarter1
+
+networks:
+  traefik-nseven:
+     external: true
+  teststarter1:
+     driver: bridge

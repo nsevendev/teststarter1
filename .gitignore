@@ -7,6 +7,12 @@
 /.angular/
 .angular/
 
+.vscode
+.idea
+app/.env
+/app/.idea
+/app/.vscode
+
 # Node modules and dependency files
 /node_modules/
 /package-lock.json
