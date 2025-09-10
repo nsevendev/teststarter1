@@ -7,6 +7,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends bash \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
+RUN npm install -g @angular/cli
 
 # -------------------------------------------------------------------
 # Étape 1 : développement (montage du code, aucune copie au build)
@@ -21,7 +22,6 @@ RUN apt-get update && apt-get install -y \
     libxrender1 libxss1 libxtst6 xdg-utils chromium \
  && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g @angular/cli
 ENV CHROME_BIN=/usr/bin/chromium
 COPY package*.json ./
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
@@ -33,11 +33,10 @@ CMD ["npm", "start"]
 # Étape 2 : construction (préproduction et production)
 # -------------------------------------------------------------------
 FROM base AS build
-ENV NODE_ENV=production
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci
 COPY . .
-RUN npm run build && npm run build:ssr
+RUN npm run build:ssr
 
 # -------------------------------------------------------------------
 # Étape 3 : exécution (préproduction et production) — image identique
