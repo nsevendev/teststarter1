@@ -36,7 +36,7 @@ FROM base AS build
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN npm run build:ssr
+RUN npx ng build --configuration production
 
 # -------------------------------------------------------------------
 # Étape 3 : exécution (préproduction et production) — image identique
