@@ -3,6 +3,8 @@ name: preprod
 on:
   push:
     branches: ["preprod"]
+  pull_request:
+    branches: [ "preprod" ]
   workflow_dispatch:
 
 concurrency:
@@ -56,6 +58,7 @@ jobs:
           make down || true
 
   build_and_push:
+    if: github.event_name == 'push'
     needs: test
     name: Build & push image to Github registry
     runs-on: ubuntu-latest
@@ -71,6 +74,9 @@ jobs:
             target: preprod
           # ajouter ici les différents services si besoin
     steps:
+      - name: Compute tag timestamp (UTC)
+        run: echo "TAG_TS=$(date -u +%Y.%m.%d-%H%M)" >> $GITHUB_ENV
+
       - name: Checkout & setup
         uses: actions/checkout@v4
 
@@ -100,10 +106,12 @@ jobs:
           tags: |
             ${{ env.IMAGE_BASE }}/${{ matrix.service.name }}:${{ env.TAG_BASE }}
             ${{ env.IMAGE_BASE }}/${{ matrix.service.name }}:${{ env.TAG_BASE }}-${{ github.sha }}
+            ${{ env.IMAGE_BASE }}/${{ matrix.service.name }}:preprod-${{ env.TAG_TS }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   deploy:
+    if: github.event_name == 'push'
     needs: build_and_push
     name: Deploy to Ionos Preprod
     runs-on: ubuntu-latest
@@ -145,6 +153,11 @@ jobs:
             
             # Navigate to project directory
             cd ~/projects/test/teststarter1
+          
+            # Pull latest changes (safe even if already on preprod branch)
+            git fetch origin
+            git checkout preprod || git checkout -b preprod origin/preprod
+            git pull origin preprod
 
             # Login GHCR (token GitHub avec scope packages:read côté serveur)
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
@@ -157,4 +170,11 @@ jobs:
           
             # Cleanup unused images
             docker image prune -f
+          
+            # Remove old images except the one just deployed
+            docker image ls "ghcr.io/nsevendev/teststarter1/app" --format '{{.Repository}}:{{.Tag}} {{.ID}}' \
+            | grep "${TAG_BASE}-" \
+            | grep -v "${IMAGE_TAG}" \
+            | awk '{print $1}' \
+            | xargs -r docker rmi -f
           EOF
