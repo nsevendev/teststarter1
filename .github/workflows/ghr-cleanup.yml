@@ -8,9 +8,6 @@ jobs:
   # ===== Nettoyage pour l'image APP =====
   cleanup-app:
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
     env:
       OWNER: ${{ github.repository_owner }}
       OWNER_KIND: nsevendev
