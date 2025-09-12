@@ -21,7 +21,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          API_BASE="https://api.github.com/${OWNER_KIND}/${OWNER}/packages/container/${PACKAGE}/versions"
+          PKG_ENC="$(printf '%s' "$PACKAGE" | jq -sRr @uri)"
+          API_BASE="https://api.github.com/${OWNER_KIND}/${OWNER}/packages/container/${PKG_ENC}/versions"
           PAGE=1
           DELETED=0
 
