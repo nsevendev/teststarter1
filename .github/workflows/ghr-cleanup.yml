@@ -8,13 +8,10 @@ jobs:
   # ===== Nettoyage pour l'image APP =====
   cleanup-app:
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
     env:
       OWNER: ${{ github.repository_owner }}
-      OWNER_KIND: nsevendev
-      PACKAGE: teststarter1%2Fapp
+      OWNER_KIND: users
+      PACKAGE: teststarter1/app
     steps:
       - name: Ensure jq is available
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -24,7 +21,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          API_BASE="https://api.github.com/${OWNER_KIND}/${OWNER}/packages/container/${PACKAGE}/versions"
+          PKG_ENC="$(printf '%s' "$PACKAGE" | jq -sRr @uri)"
+          API_BASE="https://api.github.com/${OWNER_KIND}/${OWNER}/packages/container/${PKG_ENC}/versions"
           PAGE=1
           DELETED=0
 
