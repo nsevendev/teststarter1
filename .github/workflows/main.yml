@@ -64,6 +64,17 @@ jobs:
         with:
           node-version: 22.16.0
 
+      - name: Semantic Release
+        id: semrel
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          dry_run: false
+          # installe les plugins/presets nécessaires avant executer semantic-release
+          extra_plugins: |
+            conventional-changelog-conventionalcommits
+
       - name: Install semantic-release
         run: npm i -D semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github conventional-changelog-conventionalcommits
 
