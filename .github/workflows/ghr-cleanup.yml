@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       OWNER: ${{ github.repository_owner }}
-      OWNER_KIND: nsevendev
+      OWNER_KIND: users
       PACKAGE: teststarter1/app
     steps:
       - name: Ensure jq is available
