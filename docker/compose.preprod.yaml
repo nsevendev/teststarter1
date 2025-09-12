@@ -6,11 +6,11 @@ services:
      labels:
        - "traefik.enable=true"
        - "traefik.docker.network=traefik-nseven"
-       - "traefik.http.routers.teststarter1-app.rule=${HOST_TRAEFIK_APP}"
-       - "traefik.http.routers.teststarter1-app.entrypoints=websecure"
-       - "traefik.http.routers.teststarter1-app.tls=true"
-       - "traefik.http.routers.teststarter1-app.tls.certresolver=le"
-       - "traefik.http.services.teststarter1-app.loadbalancer.server.port=4000"
+       - "traefik.http.routers.teststarter1-app-${APP_ENV}.rule=${HOST_TRAEFIK_APP}"
+       - "traefik.http.routers.teststarter1-app-${APP_ENV}.entrypoints=websecure"
+       - "traefik.http.routers.teststarter1-app-${APP_ENV}.tls=true"
+       - "traefik.http.routers.teststarter1-app-${APP_ENV}.tls.certresolver=le"
+       - "traefik.http.services.teststarter1-app-${APP_ENV}.loadbalancer.server.port=4000"
      environment:
        NODE_ENV: production
      env_file:

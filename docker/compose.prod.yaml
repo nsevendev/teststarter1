@@ -1,0 +1,32 @@
+name: teststarter1-${APP_ENV}
+services:
+  app:
+    image: ghcr.io/nsevendev/teststarter1/app:${IMAGE_TAG}
+    container_name: teststarter1_${APP_ENV}_app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-nseven"
+      - "traefik.http.routers.teststarter1-app-${APP_ENV}.rule=${HOST_TRAEFIK_APP}"
+      - "traefik.http.routers.teststarter1-app-${APP_ENV}.entrypoints=websecure"
+      - "traefik.http.routers.teststarter1-app-${APP_ENV}.tls=true"
+      - "traefik.http.routers.teststarter1-app-${APP_ENV}.tls.certresolver=le"
+      - "traefik.http.services.teststarter1-app-${APP_ENV}.loadbalancer.server.port=4000"
+    environment:
+      NODE_ENV: production
+    env_file:
+      - ../app/.env
+    networks:
+      - traefik-nseven
+      - teststarter1
+
+networks:
+  traefik-nseven:
+    external: true
+  teststarter1:
+    driver: bridge
+      - "traefik.http.routers.teststarter1-app-${APP_ENV}.rule=${HOST_TRAEFIK_APP}"
+      - "traefik.http.routers.teststarter1-app-${APP_ENV}.entrypoints=websecure"
+      - "traefik.http.routers.teststarter1-app-${APP_ENV}.tls=true"
+      - "traefik.http.routers.teststarter1-app-${APP_ENV}.tls.certresolver=le"
+      - "traefik.http.routers.teststarter1-app-${APP_ENV}.service=teststarter1-app-${APP_ENV}"
+      - "traefik.http.services.teststarter1-app-${APP_ENV}.loadbalancer.server.port=4000"
