@@ -1,0 +1,69 @@
+name: main
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+
+concurrency:
+  group: main-pipeline
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run tests (main)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env files from dist
+        run: |
+          find . -name "*.env.dist" -exec sh -c 'cp "$1" "${1%%.dist}"' _ {} \;
+
+      - name: Create Docker networks
+        run: docker network create traefik-nseven || true
+
+      - name: Start services in dev mode
+        run: |
+          make up
+          sleep 30
+
+      - name: Run frontend tests
+        run: make tafc
+
+      - name: Check logs on failure
+        if: failure()
+        run: |
+          echo "=== APP Logs ==="
+          make lapp
+
+      - name: Cleanup
+        if: always()
+        run: make down || true
+
+  release:
+    if: github.event_name == 'push'
+    needs: test
+    name: Semantic release (create tag & GitHub Release)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # requis par semantic-release
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+
+      - name: Install semantic-release
+        run: npm i -D semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github conventional-changelog-conventionalcommits
+
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
