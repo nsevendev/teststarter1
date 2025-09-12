@@ -11,7 +11,7 @@ jobs:
     env:
       OWNER: ${{ github.repository_owner }}
       OWNER_KIND: nsevendev
-      PACKAGE: teststarter1%2Fapp
+      PACKAGE: teststarter1/app
     steps:
       - name: Ensure jq is available
         run: sudo apt-get update && sudo apt-get install -y jq
