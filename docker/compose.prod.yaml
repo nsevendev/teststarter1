@@ -24,9 +24,3 @@ networks:
     external: true
   teststarter1:
     driver: bridge
-      - "traefik.http.routers.teststarter1-app-${APP_ENV}.rule=${HOST_TRAEFIK_APP}"
-      - "traefik.http.routers.teststarter1-app-${APP_ENV}.entrypoints=websecure"
-      - "traefik.http.routers.teststarter1-app-${APP_ENV}.tls=true"
-      - "traefik.http.routers.teststarter1-app-${APP_ENV}.tls.certresolver=le"
-      - "traefik.http.routers.teststarter1-app-${APP_ENV}.service=teststarter1-app-${APP_ENV}"
-      - "traefik.http.services.teststarter1-app-${APP_ENV}.loadbalancer.server.port=4000"
