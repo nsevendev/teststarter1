@@ -1,8 +1,8 @@
 name: prod
 
 on:
-  push:
-    tags: ['*']
+  release:
+    types: [ released ]
   workflow_dispatch:
 
 concurrency:
@@ -18,7 +18,7 @@ jobs:
     env:
       IMAGE_BASE: ghcr.io/${{ github.repository }}
       TAG_BASE: prod
-      VERSION: ${{ github.ref_name }}   # ex: v1.2.3
+      VERSION: ${{ github.event.release.tag_name }}   # ex: v1.2.3
     strategy:
       matrix:
         service:
@@ -33,6 +33,8 @@ jobs:
 
       - name: Checkout code at tag
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -70,7 +72,7 @@ jobs:
     name: Deploy to Ionos Prod
     runs-on: ubuntu-latest
     env:
-      IMAGE_TAG: prod-${{ github.ref_name }}   # prod-vX.Y.Z
+      IMAGE_TAG: prod-${{ github.event.release.tag_name }}   # prod-vX.Y.Z
     steps:
       - name: Setup SSH key
         run: |
