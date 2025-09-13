@@ -184,13 +184,61 @@ jobs:
 
             make down || true
             make up
+          EOF
 
-            docker image prune -f
+  cleanup_prod_images:
+    name: Cleanup images (safe, prod)
+    needs: [deploy_prod, release]
+    if: needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    env:
+      TAG_BASE: prod
+      KEEP_TAG: prod-${{ needs.release.outputs.tag || needs.release.outputs.version }}
+    steps:
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.IONOS_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          chmod 700 ~/.ssh
+          ssh-keyscan -H ${{ secrets.IONOS_HOST }} >> ~/.ssh/known_hosts
+          ssh -v -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.IONOS_USER }}@${{ secrets.IONOS_HOST }} "echo 'SSH connection successful'"
 
-            # Nettoyage sélectif des vieux tags prod (optionnel)
-            docker image ls "ghcr.io/${{ github.repository }}/app" --format '{{.Repository}}:{{.Tag}} {{.ID}}' \
-            | grep "${TAG_BASE}-" \
-            | grep -v "${IMAGE_TAG}" \
-            | awk '{print $1}' \
-            | xargs -r docker rmi -f || true
+      - name: Safe cleanup on server
+        run: |
+          ssh ${{ secrets.IONOS_USER }}@${{ secrets.IONOS_HOST }} << 'EOF'
+            set -e
+            REPO="ghcr.io/${{ github.repository }}/app"
+            TAG_BASE="${TAG_BASE}"
+            KEEP_REF="$REPO:${KEEP_TAG}"
+
+            echo "== Safe cleanup starting =="
+            echo "TAG_BASE=$TAG_BASE"
+            echo "KEEP_REF=$KEEP_REF"
+
+            # Liste des IDs d'images réellement utilisées par des conteneurs
+            IN_USE_IDS=$(docker ps --format '{{.Image}}' | xargs -r docker inspect --format '{{.Image}}' 2>/dev/null | sort -u || true)
+            echo "In-use image IDs:"
+            echo "$IN_USE_IDS"
+
+            # Prune léger: ne supprime que les couches orphelines
+            docker image prune -f || true
+
+            # Parcours des tags correspondants (prod-* ici), en évitant les images en cours d'utilisation et le tag courant
+            docker image ls "$REPO" --format '{{.Repository}}:{{.Tag}} {{.ID}}' \
+            | awk -v base="$TAG_BASE" '$1 ~ (":" base "-") {print $1, $2}' \
+            | while read REF ID; do
+                if [ "$REF" = "$KEEP_REF" ]; then
+                  echo "⏩ Keep current tag: $REF"
+                  continue
+                fi
+                if echo "$IN_USE_IDS" | grep -q "$ID"; then
+                  echo "🔒 In use, skip: $REF ($ID)"
+                  continue
+                fi
+                echo "🗑 Remove unused tag: $REF"
+                docker rmi "$REF" || true
+              done
+
+            echo "== Safe cleanup done =="
           EOF
