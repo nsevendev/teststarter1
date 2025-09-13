@@ -181,7 +181,6 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
             export IMAGE_TAG="${{ env.IMAGE_TAG }}"
-            export APP_ENV=prod
 
             make down || true
             make up
@@ -189,7 +188,6 @@ jobs:
             docker image prune -f
 
             # Nettoyage sélectif des vieux tags prod (optionnel)
-            TAG_BASE=prod
             docker image ls "ghcr.io/${{ github.repository }}/app" --format '{{.Repository}}:{{.Tag}} {{.ID}}' \
             | grep "${TAG_BASE}-" \
             | grep -v "${IMAGE_TAG}" \
