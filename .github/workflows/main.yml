@@ -136,7 +136,7 @@ jobs:
 
   # 4) Déploiement PROD (ne s’exécute que s’il y a une release)
   deploy_prod:
-    needs: build_and_push_prod
+    needs: [build_and_push_prod, release]
     if: needs.release.outputs.published == 'true'
     runs-on: ubuntu-latest
     env:
